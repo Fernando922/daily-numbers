@@ -1,3 +1,5 @@
+import { Loading } from '@components/Loading';
+import { TipsModal } from '@components/TipsModal';
 import React, { useState, useEffect } from 'react';
 import * as S from './styles';
 
@@ -6,7 +8,7 @@ type Position = {
   isWrong: boolean;
 };
 
-type ListBySize = {
+export type ListBySize = {
   [key: number]: string[];
 };
 
@@ -15,6 +17,7 @@ type Orientation = 'vertical' | 'horizontal';
 type ListOrientation = { horizontal: Orientation; vertical: Orientation };
 
 export const RandomList = () => {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [numbersList, setNumbersList] = useState<Position[]>([]);
   const [answers, setAnswers] = useState<number[]>([]);
   const [verticalTips, setVerticalTips] = useState<ListBySize>(
@@ -23,6 +26,7 @@ export const RandomList = () => {
   const [horizontalTips, setHorizontalTips] = useState<ListBySize>(
     {} as ListBySize,
   );
+  const [isTipsModalVisible, setIsTipsModalVisible] = useState<boolean>(false);
 
   const rowsAndCollumnsQuantity = 6;
   const totalNumbers = Math.pow(rowsAndCollumnsQuantity, 2);
@@ -119,33 +123,50 @@ export const RandomList = () => {
     setNumbersList(newList);
   };
 
-  useEffect(() => {
-    console.log('horizontal', horizontalTips);
-  }, [horizontalTips]);
+  const toggleModal = () => {
+    setIsTipsModalVisible(!isTipsModalVisible);
+  };
 
   useEffect(() => {
-    console.log('vertical', verticalTips);
-  }, [verticalTips]);
+    if (
+      Object.keys(verticalTips).length &&
+      Object.keys(horizontalTips).length
+    ) {
+      setIsLoading(false);
+    }
+  }, [verticalTips, horizontalTips]);
 
   return (
-    <S.Container>
-      <S.Board>
-        {answers.map((position, index) => (
-          <S.Input
-            key={index}
-            keyboardType="numeric"
-            value={position.toString()}
-            editable={position < 10}
-            maxLength={1}
-            onChangeText={text => handleChangeValue(text, index)}
-            wrongNumber={numbersList[index]?.isWrong}
-          />
-        ))}
-      </S.Board>
+    <Loading isActive={isLoading}>
+      <S.Container>
+        <S.Board>
+          {answers.map((position, index) => (
+            <S.Input
+              key={index}
+              keyboardType="numeric"
+              editable={position < 10}
+              maxLength={1}
+              onChangeText={text => handleChangeValue(text, index)}
+              wrongNumber={numbersList[index]?.isWrong}
+            />
+          ))}
+        </S.Board>
 
-      <S.Button onPress={generateRandomNumbers}>
-        <S.ButtonText>Reiniciar</S.ButtonText>
-      </S.Button>
-    </S.Container>
+        <S.Footer>
+          <S.Button onPress={generateRandomNumbers}>
+            <S.ButtonText>Reiniciar</S.ButtonText>
+          </S.Button>
+          <S.Button onPress={toggleModal}>
+            <S.ButtonText>Dicas</S.ButtonText>
+          </S.Button>
+        </S.Footer>
+        <TipsModal
+          handleDismiss={toggleModal}
+          horizontalTips={horizontalTips}
+          verticalTips={verticalTips}
+          isVisible={isTipsModalVisible}
+        />
+      </S.Container>
+    </Loading>
   );
 };

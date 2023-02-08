@@ -1,4 +1,3 @@
-import theme from '@theme/index';
 import { TextInput } from 'react-native';
 import styled, { css } from 'styled-components/native';
 
@@ -30,13 +29,9 @@ export const Input = styled(TextInput)<InputProps>`
   font-size: 24px;
   font-weight: bold;
 
-  color: ${({ wrongNumber, theme }) =>
-    wrongNumber ? 'red' : theme.colors.primary};
-  ${({ editable }) =>
-    !editable &&
-    css`
-      background-color: gray;
-    `}
+  color: ${({ editable, theme }) => (editable ? theme.colors.primary : 'gray')};
+  background-color: ${({ editable, theme }) =>
+    editable ? theme.colors.background : 'gray'}; ;
 `;
 
 export const Button = styled.TouchableOpacity`
@@ -45,4 +40,10 @@ export const Button = styled.TouchableOpacity`
 
 export const ButtonText = styled.Text`
   font-size: 24px;
+`;
+
+export const Footer = styled.View`
+  flex-direction: row;
+  width: 300px;
+  justify-content: space-between;
 `;
