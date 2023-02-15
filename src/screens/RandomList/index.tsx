@@ -8,8 +8,14 @@ type Position = {
   isWrong: boolean;
 };
 
+type Tip = {
+  value: string;
+  isChecked: boolean;
+  numberIndexes: number[];
+};
+
 export type ListBySize = {
-  [key: number]: string[];
+  [key: number]: Tip[];
 };
 
 type Orientation = 'vertical' | 'horizontal';
@@ -27,6 +33,13 @@ export const RandomList = () => {
     {} as ListBySize,
   );
   const [isTipsModalVisible, setIsTipsModalVisible] = useState<boolean>(false);
+  const [isUserList, setIsUserList] = useState<boolean>(false);
+
+  const [userVerticalNumbers, setUserVerticalNumbers] = useState<ListBySize>(
+    {} as ListBySize,
+  );
+  const [userHorizontalNumbers, setUserHorizontalNumbers] =
+    useState<ListBySize>({} as ListBySize);
 
   const rowsAndCollumnsQuantity = 6;
   const totalNumbers = Math.pow(rowsAndCollumnsQuantity, 2);
@@ -36,7 +49,14 @@ export const RandomList = () => {
     vertical: 'vertical',
   };
 
-  const indentifyNumbersBySize = (
+  const setTips = (orientation: Orientation, numbersBySize: ListBySize) => {
+    if (orientation === numbersOrientation.horizontal) {
+      return setHorizontalTips({ ...numbersBySize });
+    }
+    return setVerticalTips({ ...numbersBySize });
+  };
+
+  const identifyNumbersBySize = (
     list: number[][],
     orientation: Orientation,
   ) => {
@@ -51,25 +71,31 @@ export const RandomList = () => {
 
     for (let i = 0; i < list.length; i++) {
       let acc = '';
+      let numberIndexes = [];
       list[i].map((number, index) => {
-        if (number < 10) {
-          acc += number.toString();
+        if (number.value < 10) {
+          acc += number.value.toString();
+          numberIndexes.push(number.index);
         }
 
         if (
           acc.length &&
-          (index === rowsAndCollumnsQuantity - 1 || number > 9)
+          (index === rowsAndCollumnsQuantity - 1 || number.value > 9)
         ) {
-          numbersBySize[acc.length].push(acc);
+          numbersBySize[acc.length].push({
+            value: acc,
+            isChecked: false,
+            numberIndexes: JSON.stringify(numberIndexes),
+          });
           acc = '';
+          numberIndexes.length = 0;
         }
       });
     }
 
-    if (orientation === numbersOrientation.horizontal) {
-      return setHorizontalTips({ ...numbersBySize });
-    }
-    return setVerticalTips({ ...numbersBySize });
+    console.log(orientation, numbersBySize);
+
+    setTips(orientation, numbersBySize);
   };
 
   const mapHorizontalNumbers = (numbersList: number[]) => {
@@ -78,12 +104,11 @@ export const RandomList = () => {
       result.push(numbersList.splice(0, Math.ceil(numbersList.length / i)));
     }
 
-    indentifyNumbersBySize(result, numbersOrientation.horizontal);
+    identifyNumbersBySize(result, numbersOrientation.horizontal);
   };
 
   const mapVerticalNumbers = (numbersList: number[]) => {
     let result = [];
-    debugger;
 
     for (let i = 0; i < rowsAndCollumnsQuantity; i++) {
       let accArray = [];
@@ -93,19 +118,26 @@ export const RandomList = () => {
       result.push(accArray);
     }
 
-    indentifyNumbersBySize(result, numbersOrientation.vertical);
+    identifyNumbersBySize(result, numbersOrientation.vertical);
+  };
+
+  const mapAllNumbersPositions = (list: number[]) => {
+    mapVerticalNumbers([...list]);
+    mapHorizontalNumbers([...list]);
   };
 
   const generateRandomNumbers = () => {
-    let newList: number[] = [];
+    let newList = [];
     for (let i = 0; i < Math.pow(rowsAndCollumnsQuantity, 2); i++) {
-      newList.push(Math.round(Math.random() * 12));
+      newList.push({
+        value: Math.round(Math.random() * 12),
+        index: i,
+      });
     }
 
     setAnswers(newList);
 
-    mapVerticalNumbers([...newList]);
-    mapHorizontalNumbers([...newList]);
+    mapAllNumbersPositions([...newList]);
   };
 
   useEffect(() => {
@@ -113,14 +145,20 @@ export const RandomList = () => {
   }, []);
 
   const handleChangeValue = (text: string, index: number) => {
-    const newList: Position[] = [];
-    newList[index] = { value: text, isWrong: true };
+    const listinha = [];
+    listinha.length = 36;
 
-    if (answers[index] === Number(text)) {
-      newList[index].isWrong = false;
-    }
+    listinha[14] = '22';
+
+    const newList = [...numbersList];
+    newList[index] = text;
 
     setNumbersList(newList);
+  };
+
+  const handleReset = () => {
+    generateRandomNumbers();
+    setNumbersList([]);
   };
 
   const toggleModal = () => {
@@ -136,15 +174,21 @@ export const RandomList = () => {
     }
   }, [verticalTips, horizontalTips]);
 
+  useEffect(() => {
+    // console.log(numbersList);
+  }, [numbersList]);
+
   return (
     <Loading isActive={isLoading}>
       <S.Container>
         <S.Board>
           {answers.map((position, index) => (
             <S.Input
-              key={index}
+              key={position.index}
               keyboardType="numeric"
-              editable={position < 10}
+              value={numbersList[index]}
+              // placeholder={position.value.toString()}
+              editable={position.value < 10}
               maxLength={1}
               onChangeText={text => handleChangeValue(text, index)}
               wrongNumber={numbersList[index]?.isWrong}
@@ -153,7 +197,7 @@ export const RandomList = () => {
         </S.Board>
 
         <S.Footer>
-          <S.Button onPress={generateRandomNumbers}>
+          <S.Button onPress={handleReset}>
             <S.ButtonText>Reiniciar</S.ButtonText>
           </S.Button>
           <S.Button onPress={toggleModal}>

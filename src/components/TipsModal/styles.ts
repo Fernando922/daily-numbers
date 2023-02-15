@@ -1,5 +1,9 @@
 import { ScrollView } from 'react-native';
-import styled from 'styled-components/native';
+import styled, { css } from 'styled-components/native';
+
+type NumberProps = {
+  isChecked: boolean;
+};
 
 export const Container = styled.View`
   height: 80%;
@@ -32,7 +36,12 @@ export const Title = styled.Text`
   margin-bottom: 14px;
 `;
 
-export const Value = styled.Text`
+export const Value = styled.Text<NumberProps>`
+  ${({ isChecked }) =>
+    isChecked &&
+    css`
+      text-decoration: line-through;
+    `}
   margin-bottom: 8px;
 `;
 

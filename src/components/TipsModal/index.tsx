@@ -24,7 +24,9 @@ export const TipsModal = ({
             <S.Title>Horizontais</S.Title>
             {Object.keys(horizontalTips).map(key =>
               horizontalTips[Number(key)].map((number, index) => (
-                <S.Value key={index}>{number}</S.Value>
+                <S.Value isChecked={number.isChecked} key={index}>
+                  {number.value}
+                </S.Value>
               )),
             )}
           </S.Column>
@@ -32,7 +34,9 @@ export const TipsModal = ({
             <S.Title>Verticais</S.Title>
             {Object.keys(verticalTips).map(key =>
               verticalTips[Number(key)].map((number, index) => (
-                <S.Value key={index}>{number}</S.Value>
+                <S.Value isChecked={number.isChecked} key={index}>
+                  {number.value}
+                </S.Value>
               )),
             )}
           </S.Column>

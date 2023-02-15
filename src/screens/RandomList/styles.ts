@@ -29,7 +29,7 @@ export const Input = styled(TextInput)<InputProps>`
   font-size: 24px;
   font-weight: bold;
 
-  color: ${({ editable, theme }) => (editable ? theme.colors.primary : 'gray')};
+  color: ${({ theme }) => theme.colors.primary};
   background-color: ${({ editable, theme }) =>
     editable ? theme.colors.background : 'gray'}; ;
 `;
